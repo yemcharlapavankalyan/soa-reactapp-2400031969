@@ -1,23 +1,59 @@
 import { useState } from 'react'
+import axios from 'axios'
 
 function UserLogin() {
   const [loginData, setLoginData] = useState({ email: '', password: '' })
+  const [message,setMessage]= useState("")
+  const [error,setError] = useState("")
 
   function handleChange(event) {
     const { name, value } = event.target
     setLoginData({ ...loginData, [name]: value })
   }
 
-  function handleSubmit(event) {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log('Login data:', loginData)
+    setMessage('')
+    setError('')
+
+    try {
+      const response = await axios.post('http://localhost:8001/user/login', loginData)
+
+      if (response.status === 200) {
+        console.log('Login successful:', response.data)
+        setError('')
+        setMessage('Login Success')
+      } else {
+        console.error('Login failed:', response)
+        setMessage('')
+        setError('Login Failed')
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error('Error in response:', error.response.data)
+        setMessage('')
+        setError(error.response.data?.message || 'Error in response')
+      } else if (error.request) {
+        console.error('Error in request:', error.request)
+        setMessage('')
+        setError('Error in request')
+      } else {
+        console.error('Error:', error.message)
+        setMessage('')
+        setError('Something went wrong')
+      }
+    }
   }
 
   return (
     <section className="form-page">
       <form className="auth-form" onSubmit={handleSubmit}>
         <div>
-          <p className="eyebrow">Welcome back</p>
+          {message ? (
+            <p style={{ color: 'green' }}>{message}</p>
+          ) : error ? (
+            <p style={{ color: 'red' }}>{error}</p>
+          ) : null}
           <h1>Login</h1>
           <p className="form-description">Sign in with your account details.</p>
         </div>
